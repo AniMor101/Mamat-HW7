@@ -7,7 +7,7 @@
 typedef struct course {
     const char *name;
     int grade;
-} course_t, *course_p_t;
+} course_t;
 
 typedef struct student {
     const char *name;
@@ -23,9 +23,6 @@ enum Result {
     kSuccess = 0,
     kFail = 1
 };
-
-//course_t *course_new(const char *name, int grade);
-//student_t *student_new(const char *name, int id);
 
 // Auxiliary List Functions:
 // ============================================================================
@@ -89,6 +86,10 @@ course_t *list_search_course(struct list *courses_p, const char *name) {
 // Course Specific Functions:
 // ============================================================================
 
+/**
+ * @brief Initializes the "course" data-structure
+ * @returns A pointer to the data-structure, or NULL in case of an error
+ */
 course_t* course_new(const char* name, int grade) {
     if (name == NULL || grade < 0 || grade > 100) {
         return NULL;
@@ -110,6 +111,12 @@ course_t* course_new(const char* name, int grade) {
     return course_p;
 }
 
+/**
+ * @brief Creates a course copy
+ * @param element A pointer to a course struct
+ * @param output A pointer to a pointer to a course struct
+ * @returns Returns 0 on success or 1 on failure
+ */
 int course_clone(void *element, void **output) {
     course_t* source = (course_t*)element;
     if (source == NULL) {
@@ -137,6 +144,10 @@ void course_destroy(void *element) {
 // Student Specific Functions:
 // ============================================================================
 
+/**
+ * @brief Initializes the "student" data-structure
+ * @returns A pointer to the data-structure, or NULL in case of an error
+ */
 student_t* student_new(const char* name, int id) {
     if (name == NULL) {
         return NULL;
@@ -165,6 +176,12 @@ student_t* student_new(const char* name, int id) {
     return student_p;
 }
 
+/**
+ * @brief Creates a student copy
+ * @param element A pointer to a student struct
+ * @param output A pointer to a pointer to a student struct
+ * @returns Returns 0 on success or 1 on failure
+ */
 int student_clone(void *element, void **output) {
     student_t *source = (student_t*)element;
     if (source == NULL) {
@@ -197,10 +214,6 @@ void student_destroy(void *element) {
 // Grades Specific Functions:
 // ============================================================================
 
-/**
- * @brief Initializes the "grades" data-structure.
- * @returns A pointer to the data-structure, or NULL in case of an error
- */
 struct grades *grades_init() {
     grades_t *grades_p = (grades_t*)malloc(sizeof(grades_t));
     if (grades_p == NULL) {
@@ -216,9 +229,6 @@ struct grades *grades_init() {
     return grades_p;
 }
 
-/**
- * @brief Destroys "grades", de-allocate all memory!
- */
 void grades_destroy(struct grades *grades) {
     if (grades == NULL) {
         return;
@@ -228,12 +238,6 @@ void grades_destroy(struct grades *grades) {
     free(grades);
 }
 
-/**
- * @brief Adds a student with "name" and "id" to "grades"
- * @returns 0 on success
- * @note Failes if "grades" is invalid, or a student with
- * the same "id" already exists in "grades"
- */
 int grades_add_student(struct grades *grades, const char *name, int id) {
     if ( grades == NULL || name == NULL ) {
         return kFail;
@@ -249,13 +253,6 @@ int grades_add_student(struct grades *grades, const char *name, int id) {
     return kSuccess;
 }
 
-/**
- * @brief Adds a course with "name" and "grade" to the student with "id"
- * @return 0 on success
- * @note Failes if "grades" is invalid, if a student with "id" does not exist
- * in "grades", if the student already has a course with "name", or if "grade"
- * is not between 0 to 100.
- */
 int grades_add_grade(struct grades *grades,
                      const char* name,
                      int id,
@@ -282,17 +279,6 @@ int grades_add_grade(struct grades *grades,
     return kSuccess;
 }
 
-/**
- * @brief Calcs the average of the student with "id" in "grades".
- * @param[out] out This method sets the variable pointed by "out" to the
- * student's name. Needs to allocate memory. The user is responsible for
- * freeing the memory.
- * @returns The average, or -1 on error
- * @note Fails if "grades" is invalid, or if a student with "id" does not exist
- * in "grades".
- * @note If the student has no courses, the average is 0.
- * @note On error, sets "out" to NULL.
- */
 float grades_calc_avg(struct grades *grades, int id, char **out) {
     float avg = 0;
     *out = NULL;
@@ -321,8 +307,13 @@ float grades_calc_avg(struct grades *grades, int id, char **out) {
     return avg / size;
 }
 
-void print_student(student_t* student_p) {
-    course_t* curr_course_p = NULL;
+/**
+ * @brief Prints a student struct to stdout
+ * @param student_p A pointer to student
+ * @returns Returns 0 on success or 1 on failure
+ */
+void print_student(student_t *student_p) {
+    course_t *curr_course_p = NULL;
     struct node* it = list_begin(student_p->courses);
     int size = list_size(student_p->courses);
     if (size == 0) {
@@ -333,21 +324,14 @@ void print_student(student_t* student_p) {
     printf("%s %d: ", student_p->name, student_p->id);
     for (int i = 0; i < size - 1; i++) {
         curr_course_p = (course_t*)list_get(it);
-        printf("%s %d, ", , grade);
+        printf("%s %d, ", curr_course_p->name, curr_course_p->grade);
         it = list_next(it);
     }
+    curr_course_p = (course_t*)list_get(it);
+    printf("%s %d\n", curr_course_p->name, curr_course_p->grade);
 }
 
-/**
- * @brief Prints the courses of the student with "id" in the following format:
- * STUDENT-NAME STUDENT-ID: COURSE-1-NAME COURSE-1-GRADE, [...]
- * @returns 0 on success
- * @note Fails if "grades" is invalid, or if a student with "id" does not exist
- * in "grades".
- * @note The courses should be printed according to the order
- * in which they were inserted into "grades"
- */
-int grades_print_student(struct grades* grades, int id) {
+int grades_print_student(struct grades *grades, int id) {
     if (grades == NULL) {
         return kFail;
     }
@@ -356,19 +340,23 @@ int grades_print_student(struct grades* grades, int id) {
     if (student_p == NULL) {
         return kFail;
     }
-
-
+        
+    print_student(student_p);
+    return kSuccess;
 }
 
-/**
- * @brief Prints all students in "grade", in the following format:
- * STUDENT-1-NAME STUDENT-1-ID: COURSE-1-NAME COURSE-1-GRADE, [...]
- * STUDENT-2-NAME STUDENT-2-ID: COURSE-1-NAME COURSE-1-GRADE, [...]
- * @returns 0 on success
- * @note Fails if "grades" is invalid
- * @note The students should be printed according to the order
- * in which they were inserted into "grades"
- * @note The courses should be printed according to the order
- * in which they were inserted into "grades"
- */
-int grades_print_all(struct grades* grades);
+int grades_print_all(struct grades *grades) {
+    if (grades == NULL) {
+        return kFail;
+    }
+
+    student_t *curr_student_p = NULL;
+    struct node* it = list_begin(grades);
+    int size = list_size(grades);
+    for (int i = 0; i < size; i++) {
+        curr_student_p = (student_t*)list_get(it);
+        print_student(curr_student_p);
+        it = list_next(it);
+    }
+    return kSuccess;
+}
