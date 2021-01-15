@@ -5,12 +5,12 @@
 #include "linked-list.h"
 
 typedef struct course {
-    const char *name;
+    char *name;
     int grade;
 } course_t;
 
 typedef struct student {
-    const char *name;
+    char *name;
     int id;
     struct list *courses;
 } student_t;
@@ -243,12 +243,12 @@ int grades_add_student(struct grades *grades, const char *name, int id) {
         return kFail;
     }
     
-    if ( list_search_student_id(grades, id) != NULL ) {
+    if ( list_search_student_id(grades->students, id) != NULL ) {
         return kFail;
     }
 
     student_t* student_p = student_new(name, id);
-    list_push_back(grades, student_p);
+    list_push_back(grades->students, student_p);
     student_destroy(student_p);
     return kSuccess;
 }
@@ -264,7 +264,7 @@ int grades_add_grade(struct grades *grades,
         return kFail;
     }
 
-    student_t *student_p = list_search_student_id(grades, id);
+    student_t *student_p = list_search_student_id(grades->students, id);
     if (student_p == NULL) {
         return kFail;
     }
@@ -287,7 +287,7 @@ float grades_calc_avg(struct grades *grades, int id, char **out) {
         return -kFail;
     }
 
-    student_t* student_p = list_search_student_id(grades, id);
+    student_t* student_p = list_search_student_id(grades->students, id);
     if (student_p == NULL) {
         return -kFail;
     }
@@ -295,6 +295,10 @@ float grades_calc_avg(struct grades *grades, int id, char **out) {
     course_t* curr_course_p = NULL;
     struct node* it = list_begin(student_p->courses);
     int size = list_size(student_p->courses);
+    if (size == 0) {
+        return 0.0;
+    }
+
     for (int i = 0; i < size; i++) {
         curr_course_p = (course_t*)list_get(it);
         avg += curr_course_p->grade;
@@ -302,7 +306,7 @@ float grades_calc_avg(struct grades *grades, int id, char **out) {
     }
 
     char* tmp_out = (char*)malloc(strlen(student_p->name) + 1);
-    strcpy(tmp_out, student_p);
+    strcpy(tmp_out, student_p->name);
     *out = tmp_out;
     return avg / size;
 }
@@ -336,7 +340,7 @@ int grades_print_student(struct grades *grades, int id) {
         return kFail;
     }
 
-    student_t* student_p = list_search_student_id(grades, id);
+    student_t* student_p = list_search_student_id(grades->students, id);
     if (student_p == NULL) {
         return kFail;
     }
@@ -351,8 +355,8 @@ int grades_print_all(struct grades *grades) {
     }
 
     student_t *curr_student_p = NULL;
-    struct node* it = list_begin(grades);
-    int size = list_size(grades);
+    struct node* it = list_begin(grades->students);
+    int size = list_size(grades->students);
     for (int i = 0; i < size; i++) {
         curr_student_p = (student_t*)list_get(it);
         print_student(curr_student_p);
