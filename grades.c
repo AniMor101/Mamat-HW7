@@ -295,9 +295,6 @@ float grades_calc_avg(struct grades *grades, int id, char **out) {
     course_t* curr_course_p = NULL;
     struct node* it = list_begin(student_p->courses);
     int size = list_size(student_p->courses);
-    if (size == 0) {
-        return 0.0;
-    }
 
     for (int i = 0; i < size; i++) {
         curr_course_p = (course_t*)list_get(it);
@@ -308,6 +305,9 @@ float grades_calc_avg(struct grades *grades, int id, char **out) {
     char* tmp_out = (char*)malloc(strlen(student_p->name) + 1);
     strcpy(tmp_out, student_p->name);
     *out = tmp_out;
+    if (size == 0) {
+        return 0.0;
+    }
     return avg / size;
 }
 
